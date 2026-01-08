@@ -1,0 +1,44 @@
+name: Deploy Backend on EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      # ------------------------------
+      # BACKEND SETUP (ROOT PROJECT)
+      # ------------------------------
+      - name: Clean old dependencies
+        run: |
+          rm -rf node_modules
+          npm cache clean --force
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.PROD_BACKEND_ENV }}" > .env
+
+      - name: Restart backend with PM2
+        run: |
+          pm2 restart employee-backend || pm2 start index.js --name employee-backend
