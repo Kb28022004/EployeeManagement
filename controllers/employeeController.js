@@ -150,3 +150,49 @@ exports.deleteEmployee = async (req, res) => {
     });
   }
 };
+
+exports.getEmployeeDashboardData = async (req, res) => {
+  try {
+    const employee = await Employee.find();
+    if (!employee) {
+      return res.status(400).json({
+        success: false,
+        message: "There is no employee found",
+      });
+    }
+
+    // total number of employees
+    const totalEmployees = employee.length;
+
+    // list of all employees which is active
+    const ActiveEmployees = employee.filter(
+      (curEmpl) => curEmpl.isActive === true
+    );
+
+    // count of acitve employees
+    const totalActiveEmployees = ActiveEmployees.length;
+
+    // list of all employees which is inactive
+    const inActiveEmployees = employee.filter(
+      (curEmpl) => curEmpl.isActive === false
+    );
+
+    // count of acitve employees
+    const totalInActiveEmployees = inActiveEmployees.length;
+
+    res.status(200).json({
+      success: true,
+      dashboardData: {
+        totalEmployees,
+        totalActiveEmployees,
+        totalInActiveEmployees,
+      },
+    });
+  } catch (error) {
+    console.error("Something Went Wrong, Please try again leter:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to load data",
+    });
+  }
+};

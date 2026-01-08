@@ -6,6 +6,7 @@ const {
   getEmployees,
   updateEmployee,
   deleteEmployee,
+  getEmployeeDashboardData,
 } = require("../controllers/employeeController");
 
 const multer = require("multer");
@@ -17,6 +18,7 @@ router.use(protect, isAdmin);
 
 router.post("/", upload.single("profileImage"), createEmployee);
 router.get("/", getEmployees);
+router.get("/dashboard", getEmployeeDashboardData);
 router.put("/:id", upload.single("profileImage"), updateEmployee);
 router.delete("/:id", deleteEmployee);
 
