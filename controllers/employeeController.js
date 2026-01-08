@@ -1,4 +1,8 @@
 const Employee = require("../models/Employee");
+const mongoose = require("mongoose");
+
+/* ================= HELPER ================= */
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 /**
  * @desc    Create new employee (Admin only)
@@ -13,14 +17,15 @@ exports.createEmployee = async (req, res) => {
       employeeId: `EMP-${Date.now()}`,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Employee created successfully",
       data: employee,
     });
   } catch (error) {
     console.error("Create employee error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: "Failed to create employee",
     });
@@ -60,7 +65,7 @@ exports.getEmployees = async (req, res) => {
       Employee.countDocuments(filter),
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Employees fetched successfully",
       data: employees,
@@ -73,9 +78,49 @@ exports.getEmployees = async (req, res) => {
     });
   } catch (error) {
     console.error("Get employees error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch employees",
+    });
+  }
+};
+
+/**
+ * @desc    Get employee by ID
+ * @route   GET /api/employees/:id
+ * @access  Admin
+ */
+exports.getEmployeeById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID",
+      });
+    }
+
+    const employee = await Employee.findById(id);
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: employee,
+    });
+  } catch (error) {
+    console.error("Get employee by ID error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch employee",
     });
   }
 };
@@ -87,16 +132,23 @@ exports.getEmployees = async (req, res) => {
  */
 exports.updateEmployee = async (req, res) => {
   try {
-    const updateData = {
-      ...req.body,
-    };
+    const { id } = req.params;
+
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID",
+      });
+    }
+
+    const updateData = { ...req.body };
 
     if (req.file) {
       updateData.profileImage = req.file.filename;
     }
 
     const employee = await Employee.findByIdAndUpdate(
-      req.params.id,
+      id,
       updateData,
       { new: true, runValidators: true }
     );
@@ -108,14 +160,15 @@ exports.updateEmployee = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Employee updated successfully",
       data: employee,
     });
   } catch (error) {
     console.error("Update employee error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: "Failed to update employee",
     });
@@ -129,7 +182,16 @@ exports.updateEmployee = async (req, res) => {
  */
 exports.deleteEmployee = async (req, res) => {
   try {
-    const employee = await Employee.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+
+    if (!id || !isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee ID",
+      });
+    }
+
+    const employee = await Employee.findByIdAndDelete(id);
 
     if (!employee) {
       return res.status(404).json({
@@ -138,49 +200,36 @@ exports.deleteEmployee = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Employee deleted successfully",
     });
   } catch (error) {
     console.error("Delete employee error:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: "Failed to delete employee",
     });
   }
 };
 
+/**
+ * @desc    Employee dashboard data
+ * @route   GET /api/employees/dashboard
+ * @access  Admin
+ */
 exports.getEmployeeDashboardData = async (req, res) => {
   try {
-    const employee = await Employee.find();
-    if (!employee) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no employee found",
-      });
-    }
+    const employees = await Employee.find({}, { isActive: 1 });
 
-    // total number of employees
-    const totalEmployees = employee.length;
+    const totalEmployees = employees.length;
+    const totalActiveEmployees = employees.filter(
+      (emp) => emp.isActive
+    ).length;
+    const totalInActiveEmployees = totalEmployees - totalActiveEmployees;
 
-    // list of all employees which is active
-    const ActiveEmployees = employee.filter(
-      (curEmpl) => curEmpl.isActive === true
-    );
-
-    // count of acitve employees
-    const totalActiveEmployees = ActiveEmployees.length;
-
-    // list of all employees which is inactive
-    const inActiveEmployees = employee.filter(
-      (curEmpl) => curEmpl.isActive === false
-    );
-
-    // count of acitve employees
-    const totalInActiveEmployees = inActiveEmployees.length;
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       dashboardData: {
         totalEmployees,
@@ -189,10 +238,11 @@ exports.getEmployeeDashboardData = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Something Went Wrong, Please try again leter:", error);
-    res.status(500).json({
+    console.error("Dashboard data error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to load data",
+      message: "Failed to load dashboard data",
     });
   }
 };

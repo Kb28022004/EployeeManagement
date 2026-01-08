@@ -7,6 +7,7 @@ const {
   updateEmployee,
   deleteEmployee,
   getEmployeeDashboardData,
+  getEmployeeById
 } = require("../controllers/employeeController");
 
 const multer = require("multer");
@@ -21,5 +22,6 @@ router.get("/", getEmployees);
 router.get("/dashboard", getEmployeeDashboardData);
 router.put("/:id", upload.single("profileImage"), updateEmployee);
 router.delete("/:id", deleteEmployee);
+router.get("/:id", getEmployeeById);
 
 module.exports = router;
