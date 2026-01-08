@@ -41,4 +41,4 @@ jobs:
 
       - name: Restart backend with PM2
         run: |
-          pm2 restart employee-backend || pm2 start index.js --name employee-backend
+         npx pm2 restart employee-backend || npx pm2 start index.js --name employee-backend
