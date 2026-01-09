@@ -52,7 +52,7 @@ exports.getEmployees = async (req, res) => {
     }
 
     if (status) {
-      filter.isActive = status === "active";
+      filter.isActive = status === true;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
