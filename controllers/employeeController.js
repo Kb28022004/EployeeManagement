@@ -51,8 +51,8 @@ exports.getEmployees = async (req, res) => {
       filter.gender = gender;
     }
 
-    if (status) {
-      filter.isActive = status === true;
+    if (status !== undefined) {
+      filter.isActive = status === "true";
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -85,6 +85,7 @@ exports.getEmployees = async (req, res) => {
     });
   }
 };
+
 
 /**
  * @desc    Get employee by ID
