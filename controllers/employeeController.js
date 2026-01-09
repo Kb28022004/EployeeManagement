@@ -39,7 +39,7 @@ exports.createEmployee = async (req, res) => {
  */
 exports.getEmployees = async (req, res) => {
   try {
-    const { search, gender, status, page = 1, limit = 10 } = req.query;
+    const { search, gender, isActive, page = 1, limit = 10 } = req.query;
 
     const filter = {};
 
@@ -51,8 +51,8 @@ exports.getEmployees = async (req, res) => {
       filter.gender = gender;
     }
 
-    if (status !== undefined) {
-      filter.isActive = status === "true";
+    if (isActive !== undefined) {
+      filter.isActive = isActive === "true";
     }
 
     const skip = (Number(page) - 1) * Number(limit);
